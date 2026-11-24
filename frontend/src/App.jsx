@@ -8,6 +8,7 @@ import TripPlannerForm from "./components/TripPlannerForm";
 import TripResults from "./components/TripResults";
 import MyTrips from "./components/MyTrips";
 import AuthModal from "./components/AuthModal";
+import IndiaTripMap from "./components/IndiaTripMap";
 import "./App.css";
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   // Form state — exactly matching backend TripRequest schema. No changes here.
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     location: "Delhi",
     budget: 15000,
     days: 2,
@@ -25,7 +26,7 @@ function App() {
     interests: ["mountains", "trekking"],
     max_travel_hours: 6,
     start_date: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0]
-  });
+  }));
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -138,10 +139,20 @@ function App() {
       <main className="main-content" id="main-content">
 
         {activeTab === "home" && (
-          <Hero
-            onStartPlanning={() => navigateTo("planner")}
-            onExplore={() => navigateTo("explore")}
-          />
+          <div className="home-map-layout">
+            <section className="home-planner-panel">
+              <Hero onStartPlanning={() => navigateTo("planner")} onExplore={() => navigateTo("explore")} />
+              <div className="home-planner-shortcuts">
+                <button onClick={() => navigateTo("planner")}>Plan a weekend <span>→</span></button>
+                <button onClick={() => navigateTo("explore")}>Explore destinations <span>→</span></button>
+              </div>
+              <div className="home-trips-preview">
+                <div className="home-trips-heading"><div><span className="eyebrow">YOUR GETAWAYS</span><h2>My trips</h2></div><button onClick={() => navigateTo("saved")}>View all <span>→</span></button></div>
+                {savedTrips.length ? <div className="home-trip-list">{savedTrips.slice(0, 2).map((trip) => <button className="home-trip-row" key={trip.id} onClick={() => handleViewSavedTrip(trip)}><span className="trip-row-icon">✦</span><span><strong>{trip.destinations?.[0]?.name || "Weekend escape"}</strong><small>{trip.profile?.days || 2} days · from {trip.profile?.starting_location || "India"}</small></span><span className="trip-row-arrow">↗</span></button>)}</div> : <div className="home-empty-trips"><span className="empty-trip-mark">✳</span><div><strong>Your next story starts here</strong><p>Build a weekend plan around your budget and favorite things.</p></div><button onClick={() => navigateTo("planner")}>Create a trip <span>→</span></button></div>}
+              </div>
+            </section>
+            <IndiaTripMap onExplore={() => navigateTo("explore")} />
+          </div>
         )}
 
         {activeTab === "explore" && (
