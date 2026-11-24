@@ -9,12 +9,74 @@ import TripResults from "./components/TripResults";
 import MyTrips from "./components/MyTrips";
 import AuthModal from "./components/AuthModal";
 import IndiaTripMap from "./components/IndiaTripMap";
+import { API_BASE } from "./lib/api";
 import "./App.css";
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
+  const [authNotice, setAuthNotice] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    fetch(`${API_BASE}/auth/me`, { credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const session = await response.json();
+        if (mounted) {
+          setAuthUser(session.user);
+          setSessionExpiresAt(session.expires_at);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setAuthNotice("");
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionExpiresAt) return undefined;
+    let timeoutId;
+    const expireSession = () => {
+      setAuthUser(null);
+      setSessionExpiresAt(null);
+      setAuthNotice("Your session expired. Please sign in again.");
+    };
+    const checkExpiry = () => {
+      window.clearTimeout(timeoutId);
+      const remaining = Date.parse(sessionExpiresAt) - Date.now();
+      if (remaining <= 0) expireSession();
+      else timeoutId = window.setTimeout(expireSession, remaining);
+    };
+    checkExpiry();
+    document.addEventListener("visibilitychange", checkExpiry);
+    return () => {
+      window.clearTimeout(timeoutId);
+      document.removeEventListener("visibilitychange", checkExpiry);
+    };
+  }, [sessionExpiresAt]);
+
+  const handleAuthSuccess = (user, expiresAt) => {
+    setAuthUser(user);
+    setSessionExpiresAt(expiresAt);
+    setAuthNotice("");
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+      if (!response.ok) throw new Error("The account service could not sign out.");
+      setAuthUser(null);
+      setSessionExpiresAt(null);
+      setAuthNotice("You have signed out.");
+    } catch {
+      setAuthNotice("Could not sign out. Check that the account service is running and try again.");
+    }
+  };
 
   // Form state — exactly matching backend TripRequest schema. No changes here.
   const [form, setForm] = useState(() => ({
@@ -57,7 +119,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/plan-trip", {
+      const response = await fetch(`${API_BASE}/plan-trip`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,7 +195,10 @@ function App() {
         activeTab={activeTab}
         setActiveTab={navigateTo}
         onOpenAuth={() => setIsAuthOpen(true)}
+        user={authUser}
+        onSignOut={handleSignOut}
       />
+      {authNotice && <div className="auth-session-notice" role="status">{authNotice}</div>}
 
       {/* ── Main View ── */}
       <main className="main-content" id="main-content">
@@ -218,6 +283,7 @@ function App() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* ── Footer ── */}

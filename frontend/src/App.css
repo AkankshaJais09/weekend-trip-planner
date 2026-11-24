@@ -178,6 +178,7 @@
 .my-trips-container{max-width:1360px;padding-top:48px}.my-trips-header{padding:0 0 18px;border-bottom:1px solid #e5e9e1}.my-trips-header h2{font-size:clamp(29px,3vw,38px)}.my-trips-header p{font-size:14px;color:#718078}.saved-trips-grid{gap:18px}.saved-trip-card{background:#fffefa}.saved-badge{background:#eaf3eb;color:#377561}.btn-view-saved{color:#256a5b}
 .my-trips-empty{padding:42px 30px;border:1px solid #e5e9e1;border-radius:22px;background:#fffefa;box-shadow:0 14px 36px #24483d0c}
 .app-footer{background:#1d403a}.footer-brand span{color:#d3a06e}.footer-links button:hover{color:#e1bd8a}
+.auth-session-notice{position:fixed;z-index:1800;top:78px;right:clamp(16px,3vw,40px);max-width:min(420px,calc(100vw - 32px));padding:11px 15px;border-left:3px solid #33816d;background:#fffefa;color:#34594c;box-shadow:0 8px 24px #1f46351f;font-size:12px;font-weight:650}
 /* Explore becomes a photo led field guide instead of a wall of identical tiles. */
 .explore-container{max-width:1420px;padding-top:28px}
 .explore-hero{min-height:395px;margin-bottom:48px;border:0;border-radius:4px 4px 30px 4px;background:linear-gradient(110deg,#f2f1e8 0%,#e8eee3 54%,#d9e8df 100%);box-shadow:none;color:#203d38}
